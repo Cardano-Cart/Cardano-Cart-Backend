@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile  # The Dockerfile for the app
+    command: gunicorn cardano_cart.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+    expose:
+      - 8000
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx  # The Dockerfile for Nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    volumes:
+      - ./static:/app/static  # Mount the static files to the Nginx container
