@@ -4,10 +4,12 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile  # The Dockerfile for the app
+      dockerfile: Dockerfile  # The Dockerfile for your Django app
     command: gunicorn cardano_cart.wsgi:application --bind 0.0.0.0:8000
     volumes:
-      - .:/app
+      - .:/cardano_cart  # Ensure this points to your actual Django app folder
+      - ./static:/app/static  # Volume for static files
+      - ./media:/app/media  # Volume for media files
     expose:
       - 8000
 
@@ -20,4 +22,5 @@ services:
     depends_on:
       - web
     volumes:
-      - ./static:/app/static  # Mount the static files to the Nginx container
+      - ./static:/app/static  # Ensure static files are properly mapped
+      - ./media:/app/media  # Volume for media files
