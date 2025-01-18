@@ -8,9 +8,15 @@ from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.hashers import check_password, make_password
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 
 class RegisterView(APIView):
+    @extend_schema(
+        operation_id="register",
+        request=RegisterSerializer,
+        responses={201: UserProfileSerializer, 400: OpenApiTypes.OBJECT},
+    )
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -29,6 +35,11 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+    @extend_schema(
+        operation_id="login",
+        request=LoginSerializer,
+        responses={200: OpenApiTypes.OBJECT, 400: OpenApiTypes.OBJECT},
+    )
     def post(self, request, *args, **kwargs):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -60,6 +71,17 @@ class LoginView(APIView):
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=None,  # No complex request schema
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                description="ID of the user",
+                required=True,
+                type=OpenApiTypes.INT
+            ),
+        ]
+    )
     def get(self, request, *args, **kwargs):
         user_id = kwargs.get('id')
         try:
@@ -70,6 +92,30 @@ class UserProfileView(APIView):
         serializer = UserProfileSerializer(user, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+
+    @extend_schema(
+        request=UserProfileSerializer,  # Schema for request data
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                description="ID of the user",
+                required=True,
+                type=OpenApiTypes.INT,
+            ),
+            OpenApiParameter(
+                name='current_password',
+                description="Current password of the user (optional)",
+                required=False,
+                type=OpenApiTypes.STR,
+            ),
+            OpenApiParameter(
+                name='new_password',
+                description="New password for the user (optional)",
+                required=False,
+                type=OpenApiTypes.STR,
+            ),
+        ]
+    )
     def put(self, request, *args, **kwargs):
         user_id = kwargs.get('id')
         try:
@@ -129,6 +175,7 @@ class UserProfileView(APIView):
 class AllUsersView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses=UserProfileSerializer(many=True))
     def get(self, request, *args, **kwargs):
         users = CustomUser.objects.all()
         serializer = UserProfileSerializer(users, many=True, context={'request': request})
@@ -139,6 +186,7 @@ class AllUsersView(APIView):
 class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses=UserProfileSerializer)
     def get(self, request, *args, **kwargs):
         user = request.user
         serializer = UserProfileSerializer(user, context={'request': request})

@@ -7,13 +7,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import CreateAPIView
 from .models import Review, Product
 from .serializers import ReviewSerializer
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+
 
 class ReviewView(CreateAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
 
     
-
+    @extend_schema(
+        operation_id="add_review",
+        request=ReviewSerializer,
+        responses={201: ReviewSerializer, 400: OpenApiTypes.OBJECT},
+    )
     def post(self, request, product_id):
     # Get the product from the URL
         product = get_object_or_404(Product, id=product_id)
@@ -31,6 +37,24 @@ class ReviewView(CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
+    @extend_schema(
+    operation_id="UpdateReview",
+    description="Update an existing review for a specific product. Only the owner of the review or an admin can perform this action.",
+    request=ReviewSerializer,
+    parameters=[
+        OpenApiParameter(
+            name="product_id",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.PATH,
+            description="ID of the product to which the review belongs.",
+        ),
+        OpenApiParameter(
+            name="review_id",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.PATH,
+            description="ID of the review to be updated.",
+        ),
+    ])
     def put(self, request, product_id, review_id):
         try:
             # Fetch the review that needs to be updated
@@ -72,6 +96,28 @@ class ReviewView(CreateAPIView):
         return Response({"message": "Review deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     
 
+    @extend_schema(
+    operation_id="GetReviews",
+    description=(
+        "Retrieve reviews for a specific product. "
+        "If `review_id` is provided, fetch the specific review. "
+        "Otherwise, fetch all reviews for the product."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="product_id",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.PATH,
+            description="ID of the product for which reviews are being retrieved.",
+        ),
+        OpenApiParameter(
+            name="review_id",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.PATH,
+            required=False,
+            description="ID of the specific review to retrieve. Optional.",
+        ),
+    ])
     def get(self, request, product_id, review_id=None):
 
         if not review_id:

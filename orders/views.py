@@ -3,6 +3,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound, PermissionDenied
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from .models import Order
 from .serializers import OrderSerializer
@@ -13,6 +14,7 @@ class OrderView(generics.CreateAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=OrderSerializer)
     def post(self, request):
         # Retrieve product ID from the request
         product_id = request.data.get('product')
@@ -42,6 +44,18 @@ class OrderView(generics.CreateAPIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        operation_id="retrieve_orders",
+        parameters=[
+            OpenApiParameter(
+                name="order_id",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description="Optional order ID to retrieve a specific order",
+            )
+        ],
+        responses={200: OrderSerializer(many=True)},
+    )
     def get(self, request, order_id=None):
         if request.user.role == 'admin':
             if order_id:
@@ -81,6 +95,11 @@ class OrderView(generics.CreateAPIView):
             }, status=status.HTTP_200_OK)
         return Response({"detail": "Order ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        operation_id="update_order",
+        request=OrderSerializer,
+        responses={200: OrderSerializer, 400: OpenApiTypes.OBJECT},
+    )
     def put(self, request, order_id=None):
         if order_id is not None:
             # Retrieve order by ID or return 404 if not found
