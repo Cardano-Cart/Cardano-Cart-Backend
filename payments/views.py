@@ -6,11 +6,21 @@ from products.models import Product
 from orders.models import Order
 from payments.backends import verify_payment
 from payments.serializers import PaymentVerificationSerializer
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 
 class GetPaymentAddressView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        operation_id="get_payment_address",
+        description="Retrieve the seller's payment address for a given product ID.",
+        responses={
+            200: OpenApiTypes.OBJECT,
+            400: OpenApiTypes.OBJECT,
+            404: OpenApiTypes.OBJECT,
+            500: OpenApiTypes.OBJECT,
+        })
     def post(self, request, product_id):
         try:
             product = Product.objects.get(id=product_id)  # Get the order by ID
@@ -39,6 +49,14 @@ class GetPaymentAddressView(APIView):
 class VerifyPaymentView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        operation_id="verify_payment",
+        description="Verify a payment for a given order ID.",
+        request=PaymentVerificationSerializer,
+        responses={
+            200: OpenApiTypes.OBJECT,
+            400: OpenApiTypes.OBJECT,
+        })
     def post(self, request, order_id):
         # Retrieve the order using the order_id from the URL
         try:
