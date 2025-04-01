@@ -94,6 +94,7 @@ CORS_ALLOW_ALL_ORIGINS = os.environ.get("CORS_ALLOW_ALL_ORIGINS", "False").lower
 ROOT_URLCONF = 'cardano_cart.urls'
 
 CSRF_ALLOWED_ORIGINS = [
+    "https://charming-ninnetta-knust-028ea081.koyeb.app",
     'http://localhost:3000'
 ]
 
@@ -104,6 +105,8 @@ CSRF_ALLOWED_METHODS = [
     'PUT',
     'OPTIONS',
 ]
+
+CSRF_COOKIE_SECURE = False 
 
 
 REST_FRAMEWORK = {
