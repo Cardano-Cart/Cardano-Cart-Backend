@@ -85,6 +85,7 @@ MIDDLEWARE = [
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = [
+    "https://charming-ninnetta-knust-028ea081.koyeb.app",
     'http://localhost:3000',
 ]
 
