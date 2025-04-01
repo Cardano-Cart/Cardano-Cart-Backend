@@ -46,6 +46,12 @@ logger = logging.getLogger(__name__)
 ALLOWED_HOSTS = ['http://localhost:3000', '*']
 logger.warning(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
 
+ALLOWED_HOSTS = [
+    "charming-ninnetta-knust-028ea081.koyeb.app",
+    "localhost",
+    "127.0.0.1",
+]
+
 
 
 
@@ -93,10 +99,6 @@ CORS_ALLOW_ALL_ORIGINS = os.environ.get("CORS_ALLOW_ALL_ORIGINS", "False").lower
 
 ROOT_URLCONF = 'cardano_cart.urls'
 
-CSRF_ALLOWED_ORIGINS = [
-    "https://charming-ninnetta-knust-028ea081.koyeb.app",
-    'http://localhost:3000'
-]
 
 CSRF_ALLOWED_METHODS = [
     'POST',
@@ -106,7 +108,9 @@ CSRF_ALLOWED_METHODS = [
     'OPTIONS',
 ]
 
-CSRF_COOKIE_SECURE = False 
+CSRF_TRUSTED_ORIGINS = [
+    "https://charming-ninnetta-knust-028ea081.koyeb.app"
+]
 
 
 REST_FRAMEWORK = {
