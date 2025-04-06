@@ -25,7 +25,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'price', 'stock', 'category', 'images', 'seller', 'created_at']
+        fields = ['id', 'name', 'description', 'price', 'stock', 'category', 'subcategory', 'sku', 'specifications', 'images', 'seller', 'created_at']
 
     def validate(self, data):
         required_fields = ['name', 'price', 'description']
