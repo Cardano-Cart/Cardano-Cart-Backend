@@ -7,10 +7,15 @@ class ProductImageInline(admin.TabularInline):
     extra = 1  # Allows you to add one image by default
 
 class ProductAdmin(admin.ModelAdmin):
-    inlines = [ProductImageInline]  # Include the inline for images
+    inlines = [ProductImageInline]
 
-    list_display = ('name', 'seller', 'price', 'stock', 'category', 'created_at')  # Display these fields in the admin list view
-    search_fields = ('name', 'category')  # Add search functionality by name and category
+    list_display = ('name', 'seller', 'price', 'stock', 'get_category', 'created_at')
+    search_fields = ('name', 'subcategory__name', 'subcategory__category__name')
+
+    def get_category(self, obj):
+        return obj.subcategory.category.name if obj.subcategory and obj.subcategory.category else None
+    get_category.short_description = 'Category'
+
 
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ('image',)  # Display the image field in the admin list view

@@ -7,17 +7,25 @@ from rest_framework.views import APIView
 from .serializers import ProductSerializer
 from .models import Product
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from .models import Category
+from .serializers import CategorySerializer
+from .models import Subcategory
+from .serializers import SubcategorySerializer
 
 
 class ProductView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = ProductSerializer
 
     @extend_schema(
         operation_id="add_product",
         request=ProductSerializer,
         responses={201: ProductSerializer, 400: OpenApiTypes.OBJECT},
+        description="Create a new product. Requires authentication."
     )
     def post(self, request):
+        
         serializer = ProductSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
@@ -113,3 +121,70 @@ class ProductView(APIView):
             }, status=status.HTTP_200_OK)
         return Response({"detail": "Product ID is required."}, status=status.HTTP_400_BAD_REQUEST)
 
+
+
+
+
+# Category Views
+
+@extend_schema(
+    # operation_id="list_create_categories",
+    responses={200: CategorySerializer(many=True), 201: CategorySerializer, 400: OpenApiTypes.OBJECT},
+    description="List all categories and create a new category."
+)
+
+# List all categories and create a new category
+class CategoryListCreateView(ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+@extend_schema(
+    parameters=[
+        OpenApiParameter('id', OpenApiTypes.INT, description="ID of the category", required=True)
+    ],
+    responses={200: CategorySerializer, 404: OpenApiTypes.OBJECT},
+    description="Retrieve, update, or delete a single category."
+)
+# Retrieve, update, or delete a single category
+class CategoryRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+
+# Subcategory Views
+
+
+@extend_schema(
+    # operation_id="list_create_subcategories",
+    responses={200: SubcategorySerializer(many=True), 201: SubcategorySerializer, 400: OpenApiTypes.OBJECT},
+    description="List all subcategories and create a new subcategory."
+)
+# List all subcategories and create a new subcategory
+class SubcategoryListCreateView(ListCreateAPIView):
+    queryset = Subcategory.objects.all()
+    serializer_class = SubcategorySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+@extend_schema(
+    parameters=[
+        OpenApiParameter('id', OpenApiTypes.INT, description="ID of the subcategory", required=True)
+    ],
+    responses={200: SubcategorySerializer, 404: OpenApiTypes.OBJECT},
+    description="Retrieve, update, or delete a single subcategory."
+)
+# Retrieve, update, or delete a single subcategory
+class SubcategoryRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    queryset = Subcategory.objects.all()
+    serializer_class = SubcategorySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]

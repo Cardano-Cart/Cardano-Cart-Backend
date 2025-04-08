@@ -1,31 +1,64 @@
 from rest_framework import serializers
-from .models import Product, ProductImage
+from .models import Product, ProductImage, Category, Subcategory
 from users.models import CustomUser
 
 class ProductImageSerializer(serializers.ModelSerializer):
-    # Directly return the URL of the image field
-    image = serializers.ImageField(use_url=True)  # This line can remain if you want to return the image file
+    image = serializers.ImageField(use_url=True)
     image_url = serializers.SerializerMethodField()
 
     def get_image_url(self, obj):
-        # Construct the full URL including host
         request = self.context.get('request')
-        if request is not None:
-            full_url = request.build_absolute_uri(obj.image.url)
-            return full_url
+        if request:
+            return request.build_absolute_uri(obj.image.url)
         return None
 
     class Meta:
         model = ProductImage
-        fields = ['image', 'image_url']  # Include the image field directly
+        fields = ['image', 'image_url']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
+
+
+class SubcategorySerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source='category',
+        write_only=True
+    )
+
+    class Meta:
+        model = Subcategory
+        fields = ['id', 'name', 'category', 'category_id']
+
 
 class ProductSerializer(serializers.ModelSerializer):
-    images = ProductImageSerializer(many=True, required=False)
+
+    category_name = serializers.SerializerMethodField()
+
+    images = ProductImageSerializer(many=True, required=False, read_only=True)
     seller = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    subcategory = SubcategorySerializer(read_only=True)
+    subcategory_id = serializers.PrimaryKeyRelatedField(
+        queryset=Subcategory.objects.all(),
+        source='subcategory',
+        write_only=True
+    )
+
+    def get_category_name(self, obj):
+        return obj.subcategory.category.name if obj.subcategory and obj.subcategory.category else None
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'price', 'stock', 'category', 'subcategory', 'sku', 'specifications', 'images', 'seller', 'created_at']
+        fields = [
+            'id', 'name', 'description', 'price', 'stock','category_name', 'subcategory',
+            'subcategory_id', 'sku', 'specifications', 'images',
+            'seller', 'created_at', 'updated_at'
+        ]
 
     def validate(self, data):
         required_fields = ['name', 'price', 'description']
