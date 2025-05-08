@@ -29,20 +29,6 @@ class CustomGoogleLoginView(APIView):
                 'last_name': last_name,
                 'username': email.split('@')[0]
             })
-
-            if created:
-                user.role = 'customer'
-                user.email_verified = True
-                user.save()
-            
-            elif user:
-                if user.is_deleted:
-                    return Response({'message': 'User account has been deleted.'}, status=status.HTTP_403_FORBIDDEN)
-                elif not user.is_active:
-                    return Response({'message': 'User account is inactive.'}, status=status.HTTP_403_FORBIDDEN)
-
-
-
             # Create JWT tokens
             refresh = RefreshToken.for_user(user)
             return Response({
