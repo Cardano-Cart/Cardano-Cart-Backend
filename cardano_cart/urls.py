@@ -18,6 +18,9 @@ urlpatterns = [
     path('api/v1/', include('reviews.urls')),
     path('api/v1/payments/', include("payments.urls")),
     path('api/v1/schema/', SpectacularAPIView.as_view(), name="schema"),
-    path('api/v1/docs/', SpectacularSwaggerView.as_view(url_name="schema"))
+    path('api/v1/docs/', SpectacularSwaggerView.as_view(url_name="schema")),
+
+    path('auth/', include('allauth.urls')),
+    path('api/v1/social/', include('social_auth.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

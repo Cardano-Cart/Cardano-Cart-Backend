@@ -18,19 +18,15 @@ class RegisterView(APIView):
         responses={201: UserProfileSerializer, 400: OpenApiTypes.OBJECT},
     )
     def post(self, request, *args, **kwargs):
-        serializer = RegisterSerializer(data=request.data)
+        serializer = RegisterSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             user = serializer.save()
+            full_user_data = UserProfileSerializer(user, context={'request': request}).data
             return Response({
                 "message": "Account created successfully",
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "role": user.role,
-                    "created_at": user.created_at
-                }
+                "user": full_user_data
             }, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -41,7 +37,7 @@ class LoginView(APIView):
         responses={200: OpenApiTypes.OBJECT, 400: OpenApiTypes.OBJECT},
     )
     def post(self, request, *args, **kwargs):
-        serializer = LoginSerializer(data=request.data)
+        serializer = LoginSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
@@ -53,12 +49,7 @@ class LoginView(APIView):
                 return Response({
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
-                    "user": {
-                        "id": user.id,
-                        "username": user.username,
-                        "email": user.email,
-                        "role": user.role
-                    }
+                    "user": serializer.data
                 }, status=status.HTTP_200_OK)
             else:
                 raise AuthenticationFailed("Invalid email or password.")

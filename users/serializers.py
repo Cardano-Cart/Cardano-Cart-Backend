@@ -4,10 +4,11 @@ from .models import CustomUser
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'address', 'phone_number', 'wallet_id']
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'address', 'phone_number', 'wallet_id', 'avatar', 'avatar_url']
         extra_kwargs = {
             'password': {'write_only': True},
             'wallet_id': {'write_only': True}
@@ -15,29 +16,24 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
-            # Start a transaction to ensure atomicity
             with transaction.atomic():
-                user = CustomUser.objects.create(
-                    username=validated_data['username'],
-                    email=validated_data['email'],
-                    first_name=validated_data.get('first_name', ''),
-                    last_name=validated_data.get('last_name', ''),
-                    address=validated_data.get('address', ''),
-                    phone_number=validated_data.get('phone_number', ''),
-                )
-                print("User created:", user)  # Print statement before saving
-                user.set_password(validated_data['password'])
-                user.save()  # Save the user after password hashing
-                print("User saved:", user)  # Print statement after saving
+                avatar = validated_data.pop('avatar', None)
+                password = validated_data.pop('password')
+
+                user = CustomUser.objects.create(**validated_data)
+
+                if avatar:
+                    user.avatar = avatar
+
+                user.set_password(password)
+                user.save()
                 return user
 
         except IntegrityError as e:
-            print("IntegrityError:", e)  # Log integrity error
             raise serializers.ValidationError("A user with this email or username already exists.")
-        
         except Exception as e:
-            print("Error:", e)  # Log other errors
             raise serializers.ValidationError(f"Error creating user: {str(e)}")
+
     
     def validate(self, data):
         required_fields = ['username', 'email', 'password']  # Adjust based on your actual required fields
@@ -73,8 +69,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at', 'role']
 
     def get_avatar_url(self, obj):
-        request = self.context.get('request')
-        if obj.avatar and request:
-            return request.build_absolute_uri(obj.avatar.url)
+        if obj.avatar:
+            return obj.avatar.url
         return None
+
+    def validate_email(self, value):
+        if CustomUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email is already in use.")
+        return value
 
