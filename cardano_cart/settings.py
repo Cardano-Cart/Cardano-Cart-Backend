@@ -45,19 +45,19 @@ logger.warning(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
 # ]
 
 
-'''cloudinary.config( 
+cloudinary.config( 
     cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'), 
     api_key = os.getenv('CLOUDINARY_API_KEY'),
     api_secret = os.getenv('CLOUDINARY_API_SECRET'),
     secure=True
-)'''
+)
 
-cloudinary.config( 
+'''cloudinary.config( 
     cloud_name = "dsozokzfl", 
     api_key = "948372329717887",
     api_secret = "W7oBBgRrUVDBsgRalAlyDbs7x8U",
     secure=True
-)
+)'''
 
 
 # Application definition
