@@ -45,10 +45,17 @@ logger.warning(f"ALLOWED_HOSTS: {ALLOWED_HOSTS}")
 # ]
 
 
-cloudinary.config( 
+'''cloudinary.config( 
     cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'), 
     api_key = os.getenv('CLOUDINARY_API_KEY'),
     api_secret = os.getenv('CLOUDINARY_API_SECRET'),
+    secure=True
+)'''
+
+cloudinary.config( 
+    cloud_name = "dsozokzfl", 
+    api_key = "948372329717887",
+    api_secret = "W7oBBgRrUVDBsgRalAlyDbs7x8U",
     secure=True
 )
 
@@ -173,12 +180,12 @@ WSGI_APPLICATION = 'cardano_cart.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
-#    }
-# }
+'''DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+ }'''
 
 DATABASES = {
     'default': {

@@ -6,10 +6,13 @@ class ProductImageSerializer(serializers.ModelSerializer):
     image = serializers.ImageField(use_url=True)
     image_url = serializers.SerializerMethodField()
 
-    def get_avatar_url(self, obj):
+    def get_image_url(self, obj):
+        return obj.image.url if obj.image else None
+
+    '''def get_avatar_url(self, obj):
         if obj.avatar:
             return obj.avatar.url
-        return None
+        return None'''
 
     class Meta:
         model = ProductImage
@@ -48,8 +51,12 @@ class ProductSerializer(serializers.ModelSerializer):
         write_only=True
     )
 
-    def get_category_name(self, obj):
+
+    def get_category_name(self, obj) -> str:
         return obj.subcategory.category.name if obj.subcategory and obj.subcategory.category else None
+
+    #def get_category_name(self, obj):
+    #    return obj.subcategory.category.name if obj.subcategory and obj.subcategory.category else None
 
     class Meta:
         model = Product
@@ -67,15 +74,41 @@ class ProductSerializer(serializers.ModelSerializer):
                 'missing_fields': f"Missing required fields: {', '.join(missing_fields)}"
             })
         return data
-
+    
     def create(self, validated_data):
+        try:
+            request = self.context['request']
+            user = request.user
+            subcategory = validated_data.pop('subcategory', None)
+
+            product = Product.objects.create(
+                seller=user,
+                subcategory=subcategory,
+                **validated_data
+            )
+
+            images_data = request.FILES.getlist('images')
+            for image in images_data:
+                image_instance = ProductImage.objects.create(image=image)
+                product.images.add(image_instance)
+
+            return product
+        except Exception as e:
+            import traceback
+            print("Error creating product:", str(e))
+            traceback.print_exc()
+            raise serializers.ValidationError({"detail": "Internal server error during product creation."})
+
+
+
+    '''def create(self, validated_data):
         user = self.context['request'].user
         images_data = self.context['request'].FILES.getlist('images')
         product = Product.objects.create(seller=user, **validated_data)
         for image in images_data:
             image_instance = ProductImage.objects.create(image=image)
             product.images.add(image_instance)
-        return product
+        return product'''
 
     def update(self, instance, validated_data):
         images_data = self.context['request'].FILES.getlist('images')

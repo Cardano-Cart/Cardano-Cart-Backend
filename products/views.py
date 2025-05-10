@@ -12,9 +12,11 @@ from .models import Category
 from .serializers import CategorySerializer
 from .models import Subcategory
 from .serializers import SubcategorySerializer
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 class ProductView(APIView):
+    parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = ProductSerializer
 
@@ -25,7 +27,9 @@ class ProductView(APIView):
         description="Create a new product. Requires authentication."
     )
     def post(self, request):
-        
+        print("Incoming POST data:", request.data)
+        print("Incoming FILES:", request.FILES)
+
         serializer = ProductSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
@@ -33,6 +37,7 @@ class ProductView(APIView):
                 "message": "Product added successfully",
                 "product": serializer.data
             }, status=status.HTTP_201_CREATED)
+        print("Serializer errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
