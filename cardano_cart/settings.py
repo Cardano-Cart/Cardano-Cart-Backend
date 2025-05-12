@@ -52,13 +52,6 @@ cloudinary.config(
     secure=True
 )
 
-'''cloudinary.config( 
-    cloud_name = "dsozokzfl", 
-    api_key = "948372329717887",
-    api_secret = "W7oBBgRrUVDBsgRalAlyDbs7x8U",
-    secure=True
-)'''
-
 
 # Application definition
 
